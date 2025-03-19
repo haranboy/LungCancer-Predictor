@@ -3,6 +3,7 @@ import google.generativeai as genai
 import os
 import pickle
 import pandas as pd
+import sklearn
 
 # Configure Gemini API Key
 API_KEY = os.getenv("GEMINI_API_KEY")
