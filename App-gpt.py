@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 
 # Configure Gemini API Key
-genai.configure(api_key="YOUR_GEMINI_API_KEY")
+genai.configure(api_key="AIzaSyBN6WujsTkSVMKmB52urK7hr8LY4aLzOFg")
 
 # Feature names
 feature_names = [
