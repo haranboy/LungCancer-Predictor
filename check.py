@@ -1,10 +1,8 @@
 import google.generativeai as genai
+import os
 
-genai.configure(api_key="AIzaSyBN6WujsTkSVMKmB52urK7hr8LY4aLzOFg")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-try:
-    model = genai.GenerativeModel("gemini-pro")
-    response = model.generate_content("Hello, how are you?")
-    print(response.text)
-except Exception as e:
-    print("Error:", e)
+models = genai.list_models()
+for model in models:
+    print(model.name)
