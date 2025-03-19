@@ -66,25 +66,24 @@ else:
 
     # Prediction using Random Forest model
     if st.button("Predict"):
-        try:
-            user_input_df = pd.DataFrame([user_responses], columns=feature_names)
-            # prediction_probability = model.predict_proba(user_input_df)[0][1] * 100 #probability of cancer
-            prediction = model.predict(user_input_df)[0][1]* 100
-            prediction_probability = round(prediction_probability, 2)
-            user_input_str = ", ".join([f"{feature}: {value}" for feature, value in zip(feature_names, user_responses)])
+    try:
+        user_input_df = pd.DataFrame([user_responses], columns=feature_names)
+        prediction = model.predict(user_input_df)[0] #Predict class label.
+        user_input_str = ", ".join([f"{feature}: {value}" for feature, value in zip(feature_names, user_responses)])
 
-            # Construct prompt for Gemini
-            prompt = f"""
-            The patient has a {prediction_probability}% chance of lung cancer detection based on these factors: {user_input_str}.
-            Based on these factors, how can the patient stay healthier for longer? Provide specific lifestyle changes and medical advice.
-            Include helpful links.
-            """
+        # Construct prompt for Gemini (modified)
+        prompt = f"""
+        The patient's predicted lung cancer risk is: {prediction}. Based on these factors: {user_input_str}.
+        Based on these factors, how can the patient stay healthier for longer? Provide specific lifestyle changes and medical advice.
+        Include helpful links.
+        """
 
-            model_gemini = genai.GenerativeModel("gemini-nano") #or other available model
-            response = model_gemini.generate_content(prompt)
+        model_gemini = genai.GenerativeModel("gemini-pro")
+        response = model_gemini.generate_content(prompt)
 
-            st.subheader("Lung Cancer Risk and Advice:")
-            st.write(response.text)
+        st.subheader("Lung Cancer Risk and Advice:")
+        st.write(response.text)
 
-        except Exception as e:
-            st.error(f"An error occurred during prediction: {e}")
+    except Exception as e:
+        st.error(f"An error occurred during prediction: {e}")
+        
