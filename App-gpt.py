@@ -55,7 +55,7 @@ if st.button("Predict"):
     Explain why this percentage was given and suggest lifestyle changes or medical advice to reduce risk.
     """
 
-    model = genai.GenerativeModel("gemini-pro")
+    model = genai.GenerativeModel("gemini-1.0-pro")
     response = model.generate_content(prompt)
 
     st.subheader("Lung Cancer Prediction Result:")
