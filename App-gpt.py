@@ -2,6 +2,7 @@ import streamlit as st
 import pickle
 import numpy as np
 import google.generativeai as genai
+import sklearn
 
 # Load API Key from Streamlit Secrets
 api_key = st.secrets["GEMINI_API_KEY"]
