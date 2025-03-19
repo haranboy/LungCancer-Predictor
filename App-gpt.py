@@ -7,7 +7,7 @@ import openai
 rf_model = joblib.load("lung_cancer_rf.pckl")
 
 # OpenAI API Key (You need to set this as a secret in Streamlit Cloud)
-openai.api_key = st.secrets["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"]
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Feature names (Ensure these match exactly with dataset column names)
 feature_names = [
