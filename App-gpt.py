@@ -43,7 +43,7 @@ else:
     # Yes/No questions
     yes_no_features = [
         "SMOKING", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "SMOKING_FAMILY_HISTORY",
-        "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY", "IMMUNE_WEAKNESS",
+        "STRESS_IMMUNE", "EXPOSURE_TO_POLLPOLLUTION", "FAMILY_HISTORY", "IMMUNE_WEAKNESS",
         "CHEST_TIGHTNESS", "ALCOHOL_CONSUMPTION", "LONG_TERM_ILLNESS", "MENTAL_STRESS",
         "FINGER_DISCOLORATION"
     ]
@@ -69,7 +69,7 @@ else:
     if st.button("Predict"):
         try:
             user_input_df = pd.DataFrame([user_responses], columns=feature_names)
-            prediction = model.predict(user_input_df)  # Predict class label.
+            prediction = model.predict(user_input_df)[0]  # Predict class label.
             user_input_str = ", ".join([f"{feature}: {value}" for feature, value in zip(feature_names, user_responses)])
 
             # Construct prompt for Gemini (modified)
@@ -79,7 +79,7 @@ else:
             Include helpful links.
             """
 
-            model_gemini = genai.GenerativeModel("gemini-pro")
+            model_gemini = genai.GenerativeModel("gemini-nano")
             response = model_gemini.generate_content(prompt)
 
             st.subheader("Lung Cancer Risk and Advice:")
