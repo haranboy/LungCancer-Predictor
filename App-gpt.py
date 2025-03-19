@@ -69,7 +69,7 @@ else:
     if st.button("Predict"):
         try:
             user_input_df = pd.DataFrame([user_responses], columns=feature_names)
-            prediction = model.predict(user_input_df)[0]  # Predict class label.
+            prediction = model.predict(user_input_df)  # Predict class label.
             user_input_str = ", ".join([f"{feature}: {value}" for feature, value in zip(feature_names, user_responses)])
 
             # Construct prompt for Gemini (modified)
