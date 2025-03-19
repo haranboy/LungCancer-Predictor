@@ -68,7 +68,8 @@ else:
     if st.button("Predict"):
         try:
             user_input_df = pd.DataFrame([user_responses], columns=feature_names)
-            prediction_probability = model.predict_proba(user_input_df)[0][1] * 100 #probability of cancer
+            # prediction_probability = model.predict_proba(user_input_df)[0][1] * 100 #probability of cancer
+            prediction = model.predict(user_input_df)[0][1]* 100
             prediction_probability = round(prediction_probability, 2)
             user_input_str = ", ".join([f"{feature}: {value}" for feature, value in zip(feature_names, user_responses)])
 
