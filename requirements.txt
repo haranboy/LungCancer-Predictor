@@ -5,4 +5,4 @@ pandas
 scikit-learn
 shap
 matplotlib
-openai>=0.27.0
+openai>=1.0.0
