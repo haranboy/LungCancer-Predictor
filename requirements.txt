@@ -5,5 +5,4 @@ pandas
 scikit-learn
 shap
 matplotlib
-openai
-pip install --upgrade openai
+openai>=0.27.0
