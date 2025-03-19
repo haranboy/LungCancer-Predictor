@@ -4,7 +4,7 @@ import openai  # GPT API
 import pandas as pd
 
 # Load the trained model
-model = joblib.load("model.pckl")
+model = joblib.load("lung_cancer_rf.pckl")
 
 # Set up OpenAI API
 openai.api_key = "your_openai_api_key"  # Replace with your key
