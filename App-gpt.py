@@ -66,7 +66,7 @@ if st.button("Predict"):
     Explain this result simply and provide medical advice.
     """
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a medical assistant providing explanations in simple terms."},
