@@ -9,7 +9,7 @@ rf_model = joblib.load("lung_cancer_rf.pckl")
 
 # Hugging Face API Key (Set this in Streamlit secrets)
 HUGGINGFACE_API_KEY = st.secrets["HUGGINGFACE_API_KEY"]
-HF_MODEL = "mistralai/Mistral-7B-Instruct"  # Change this if needed
+HF_MODEL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct"  # Change this if needed
 
 # Feature names
 feature_names = [
