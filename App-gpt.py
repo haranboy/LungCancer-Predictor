@@ -16,7 +16,7 @@ else:
 
     # Load the Random Forest model
     try:
-        with open("lung_cancer_rf.pkl", "rb") as f:
+        with open("lung_cancer_rf.pckl", "rb") as f:
             model = pickle.load(f)
     except FileNotFoundError:
         st.error("lung_cancer_rf.pckl not found. Please ensure it's in the same directory.")
