@@ -63,20 +63,20 @@ if st.button("Predict"):
     They provided the following answers:
     {dict(zip(feature_names, user_responses))}
     
-    Provide an easy-to-understand explanation of what this result means. 
-    Also, suggest preventive measures or lifestyle changes based on their risk factors.
+    Provide a clear, simple explanation of what this result means.
+    Suggest preventive measures or lifestyle changes based on their risk factors.
     """
     
-    # OpenAI API Call
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",  # Using GPT-3.5-turbo instead of GPT-4
+    client = openai.Client()
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a medical assistant providing clear, simple advice."},
             {"role": "user", "content": prompt}
         ]
     )
 
-    gpt_explanation = response["choices"][0]["message"]["content"]
+    gpt_explanation = response.choices[0].message.content
     
     st.write("### AI Health Advice:")
     st.info(gpt_explanation)
