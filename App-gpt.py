@@ -94,7 +94,7 @@ if st.button("Predict"):
                 Keep it concise and actionable. Suggest **helpful resources or medical professionals to consult.**
                 """
 
-                model_gemini = genai.GenerativeModel("gemini-1.0-pro")
+                model_gemini = genai.GenerativeModel("gemini-1.5-flash")
                 response = model_gemini.generate_content(prompt)
 
                 # Display AI-generated advice
