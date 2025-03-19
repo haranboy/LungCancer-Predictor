@@ -78,7 +78,7 @@ else:
             Include helpful links.
             """
 
-            model_gemini = genai.GenerativeModel("gemini-pro") #or other available model
+            model_gemini = genai.GenerativeModel("gemini-nano") #or other available model
             response = model_gemini.generate_content(prompt)
 
             st.subheader("Lung Cancer Risk and Advice:")
