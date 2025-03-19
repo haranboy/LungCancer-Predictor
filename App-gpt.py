@@ -7,8 +7,7 @@ import openai
 rf_model = joblib.load("lung_cancer_rf.pckl")
 
 # Set OpenAI API Key from Streamlit secrets
-api_key = st.secrets["OPENAI_API_KEY"]
-client = openai.Client(api_key=api_key)  # Correct OpenAI client initialization
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Feature names
 feature_names = [
@@ -59,24 +58,25 @@ if st.button("Predict"):
     st.subheader(f"Lung Cancer Probability: {probability:.2f}%")
 
     # Generate AI Explanation
-    prompt = (
-        f"The user has a lung cancer probability of {probability:.2f}%.\n"
-        f"They provided the following answers:\n"
-        f"{dict(zip(feature_names, user_responses))}\n\n"
-        "Provide an easy-to-understand explanation of what this result means.\n"
-        "Also, suggest preventive measures or lifestyle changes based on their risk factors."
-    )
-
-    # Send request to OpenAI
-    response = client.chat.completions.create(
-        model="gpt-4",
+    prompt = f"""
+    The user has a lung cancer probability of {probability:.2f}%. 
+    They provided the following answers:
+    {dict(zip(feature_names, user_responses))}
+    
+    Provide an easy-to-understand explanation of what this result means. 
+    Also, suggest preventive measures or lifestyle changes based on their risk factors.
+    """
+    
+    # OpenAI API Call
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",  # Using GPT-3.5-turbo instead of GPT-4
         messages=[
             {"role": "system", "content": "You are a medical assistant providing clear, simple advice."},
             {"role": "user", "content": prompt}
         ]
     )
 
-    gpt_explanation = response.choices[0].message['content']
-
+    gpt_explanation = response["choices"][0]["message"]["content"]
+    
     st.write("### AI Health Advice:")
     st.info(gpt_explanation)
