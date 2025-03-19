@@ -69,7 +69,7 @@ else:
 
             try:
                 # IMPORTANT: Replace "gemini-1.5" with the correct model name
-                model = genai.GenerativeModel("gemini-pro") #or gemini-ultra, etc.
+                model = genai.GenerativeModel("gemini-ultra")
                 response = model.generate_content(prompt)
                 st.subheader("Lung Cancer Prediction Result:")
                 st.write(response.text)
