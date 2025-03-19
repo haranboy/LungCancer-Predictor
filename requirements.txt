@@ -1,3 +1,4 @@
 google-generativeai
 streamlit
 scikit-learn
+numpy
