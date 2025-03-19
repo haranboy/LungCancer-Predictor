@@ -1,11 +1,10 @@
 import streamlit as st
-import joblib
-import numpy as np
+import google.generativeai as genai
 
-# Load trained Random Forest model
-rf_model = joblib.load("lung_cancer_rf.pckl")
+# Set up Gemini API Key
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
 
-# Feature names (Ensure these match exactly with dataset column names)
+# Feature names
 feature_names = [
     "SMOKING", "ENERGY_LEVEL", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "OXYGEN_SATURATION",
     "AGE", "SMOKING_FAMILY_HISTORY", "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY",
@@ -20,7 +19,7 @@ st.write("Answer the following questions to assess your lung cancer risk.")
 # User inputs
 user_responses = []
 
-# Ask Yes/No questions for categorical features
+# Ask Yes/No questions
 yes_no_features = [
     "SMOKING", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "SMOKING_FAMILY_HISTORY", 
     "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY", "IMMUNE_WEAKNESS", 
@@ -32,7 +31,7 @@ for feature in yes_no_features:
     response = st.radio(f"Do you have {feature.replace('_', ' ').lower()}?", ('No', 'Yes'))
     user_responses.append(1 if response == 'Yes' else 0)
 
-# Numeric inputs for continuous variables
+# Numeric inputs
 age = st.slider("What is your age?", min_value=18, max_value=100, value=40)
 oxygen_saturation = st.slider("Oxygen saturation level (%)", min_value=70, max_value=100, value=98)
 energy_level = st.slider("Rate your energy level (1-10)", min_value=1, max_value=10, value=5)
@@ -47,6 +46,16 @@ user_responses.append(1 if gender == 'Female' else 0)
 
 # Prediction
 if st.button("Predict"):
-    input_array = np.array([user_responses]).reshape(1, -1)
-    probability = rf_model.predict_proba(input_array)[0][1] * 100  # Convert to percentage
-    st.subheader(f"Lung Cancer Probability: {probability:.2f}%")
+    user_input_str = ", ".join([f"{feature}: {value}" for feature, value in zip(feature_names, user_responses)])
+
+    # Call Gemini API
+    prompt = f"""
+    Given the following health data: {user_input_str}, predict the likelihood of lung cancer in percentage. 
+    Also, explain why this percentage was given and suggest lifestyle changes or medical advice to reduce risk.
+    """
+
+    model = genai.GenerativeModel("gemini-pro")
+    response = model.generate_content(prompt)
+
+    st.subheader("Lung Cancer Prediction Result:")
+    st.write(response.text)
