@@ -1,6 +1,13 @@
 import streamlit as st
 import pickle
 import numpy as np
+import google.generativeai as genai
+
+# Load API Key from Streamlit Secrets
+api_key = st.secrets["GEMINI_API_KEY"]
+
+# Configure Gemini API
+genai.configure(api_key=api_key)
 
 # Load the trained Random Forest model
 MODEL_PATH = "lung_cancer_rf.pckl"  # Ensure the file is in the same directory
