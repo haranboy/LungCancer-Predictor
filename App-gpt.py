@@ -23,7 +23,6 @@ except Exception as e:
     st.error(f"Error loading the model: {e}")
     st.stop()
 
-# Feature names (Ensure these match exactly as used in model training)
 feature_names = [
     "SMOKING", "ENERGY_LEVEL", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "OXYGEN_SATURATION",
     "AGE", "SMOKING_FAMILY_HISTORY", "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY",
@@ -46,22 +45,29 @@ yes_no_features = [
     "FINGER_DISCOLORATION"
 ]
 
+# Create a dictionary to store responses, keyed by feature name
+response_dict = {}
+
 for feature in yes_no_features:
     response = st.radio(f"Do you have {feature.replace('_', ' ').lower()}?", ('No', 'Yes'))
-    user_responses.append(1 if response == 'Yes' else 0)
+    response_dict[feature] = 1 if response == 'Yes' else 0
 
 # Numeric inputs
 age = st.slider("What is your age?", min_value=18, max_value=100, value=40)
 oxygen_saturation = st.slider("Oxygen saturation level (%)", min_value=70, max_value=100, value=98)
 energy_level = st.slider("Rate your energy level (1-10)", min_value=1, max_value=10, value=5)
 
-user_responses.append(age)
-user_responses.append(oxygen_saturation)
-user_responses.append(energy_level)
+response_dict["AGE"] = age
+response_dict["OXYGEN_SATURATION"] = oxygen_saturation
+response_dict["ENERGY_LEVEL"] = energy_level
 
 # Gender selection (0 for Male, 1 for Female)
 gender = st.radio("Select your gender:", ('Male', 'Female'))
-user_responses.append(1 if gender == 'Female' else 0)
+response_dict["GENDER"] = 1 if gender == 'Female' else 0
+
+# Append user responses in the order of feature_names
+for feature in feature_names:
+    user_responses.append(response_dict[feature])
 
 # Prediction using Random Forest model
 if st.button("Predict"):
