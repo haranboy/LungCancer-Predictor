@@ -1,13 +1,15 @@
 import streamlit as st
 import joblib
 import numpy as np
-import openai
+import requests
+import json
 
 # Load trained Random Forest model
 rf_model = joblib.load("lung_cancer_rf.pckl")
 
-# Set OpenAI API Key from Streamlit secrets
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Hugging Face API Key (Set this in Streamlit secrets)
+HUGGINGFACE_API_KEY = st.secrets["HUGGINGFACE_API_KEY"]
+HF_MODEL = "mistralai/Mistral-7B-Instruct"  # Change this if needed
 
 # Feature names
 feature_names = [
@@ -62,21 +64,18 @@ if st.button("Predict"):
     The user has a lung cancer probability of {probability:.2f}%. 
     They provided the following answers:
     {dict(zip(feature_names, user_responses))}
-    
-    Provide a clear, simple explanation of what this result means.
+    Provide an easy-to-understand explanation of what this result means.
     Suggest preventive measures or lifestyle changes based on their risk factors.
     """
-    
-    client = openai.Client()
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a medical assistant providing clear, simple advice."},
-            {"role": "user", "content": prompt}
-        ]
-    )
 
-    gpt_explanation = response.choices[0].message.content
+    headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}", "Content-Type": "application/json"}
+    data = json.dumps({"inputs": prompt})
     
-    st.write("### AI Health Advice:")
-    st.info(gpt_explanation)
+    response = requests.post(f"https://api-inference.huggingface.co/models/{HF_MODEL}", headers=headers, data=data)
+    
+    if response.status_code == 200:
+        gpt_explanation = response.json()[0]["generated_text"]
+        st.write("### AI Health Advice:")
+        st.info(gpt_explanation)
+    else:
+        st.error("Error: Could not fetch AI explanation. Try again later.")
