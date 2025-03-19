@@ -1,6 +1,8 @@
 import streamlit as st
 import google.generativeai as genai
 import os
+import pickle
+import pandas as pd
 
 # Configure Gemini API Key
 API_KEY = os.getenv("GEMINI_API_KEY")
@@ -10,72 +12,77 @@ if not API_KEY:
 else:
     genai.configure(api_key=API_KEY)
 
-    # List available models
+    # Load the Random Forest model
     try:
-        for model in genai.list_models():
-            print(f"Model: {model.name}")
-            print(f"  Description: {model.description}")
-            print(f"  Supported generation methods: {model.supported_generation_methods}")
+        with open("lung_cancer_rf.pckl", "rb") as f:
+            model = pickle.load(f)
+    except FileNotFoundError:
+        st.error("lung_cancer_rf.pckl not found. Please ensure it's in the same directory.")
+        exit()
+    except Exception as e:
+        st.error(f"Error loading the model: {e}")
+        exit()
 
-        # Feature names (rest of your code remains the same)
-        feature_names = [
-            "SMOKING", "ENERGY_LEVEL", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "OXYGEN_SATURATION",
-            "AGE", "SMOKING_FAMILY_HISTORY", "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY",
-            "IMMUNE_WEAKNESS", "CHEST_TIGHTNESS", "ALCOHOL_CONSUMPTION", "LONG_TERM_ILLNESS",
-            "MENTAL_STRESS", "GENDER", "FINGER_DISCOLORATION"
-        ]
+    # Feature names
+    feature_names = [
+        "SMOKING", "ENERGY_LEVEL", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "OXYGEN_SATURATION",
+        "AGE", "SMOKING_FAMILY_HISTORY", "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY",
+        "IMMUNE_WEAKNESS", "CHEST_TIGHTNESS", "ALCOHOL_CONSUMPTION", "LONG_TERM_ILLNESS",
+        "MENTAL_STRESS", "GENDER", "FINGER_DISCOLORATION"
+    ]
 
-        # Streamlit UI (rest of your code remains the same)
-        st.title("Lung Cancer Prediction App")
-        st.write("Answer the following questions to assess your lung cancer risk.")
+    # Streamlit UI
+    st.title("Lung Cancer Prediction App")
+    st.write("Answer the following questions to assess your lung cancer risk.")
 
-        # User inputs (rest of your code remains the same)
-        user_responses = []
+    # User inputs
+    user_responses = []
 
-        # Yes/No questions (rest of your code remains the same)
-        yes_no_features = [
-            "SMOKING", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "SMOKING_FAMILY_HISTORY",
-            "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY", "IMMUNE_WEAKNESS",
-            "CHEST_TIGHTNESS", "ALCOHOL_CONSUMPTION", "LONG_TERM_ILLNESS", "MENTAL_STRESS",
-            "FINGER_DISCOLORATION"
-        ]
+    # Yes/No questions
+    yes_no_features = [
+        "SMOKING", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "SMOKING_FAMILY_HISTORY",
+        "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY", "IMMUNE_WEAKNESS",
+        "CHEST_TIGHTNESS", "ALCOHOL_CONSUMPTION", "LONG_TERM_ILLNESS", "MENTAL_STRESS",
+        "FINGER_DISCOLORATION"
+    ]
 
-        for feature in yes_no_features:
-            response = st.radio(f"Do you have {feature.replace('_', ' ').lower()}?", ('No', 'Yes'))
-            user_responses.append(1 if response == 'Yes' else 0)
+    for feature in yes_no_features:
+        response = st.radio(f"Do you have {feature.replace('_', ' ').lower()}?", ('No', 'Yes'))
+        user_responses.append(1 if response == 'Yes' else 0)
 
-        # Numeric inputs (rest of your code remains the same)
-        age = st.slider("What is your age?", min_value=18, max_value=100, value=40)
-        oxygen_saturation = st.slider("Oxygen saturation level (%)", min_value=70, max_value=100, value=98)
-        energy_level = st.slider("Rate your energy level (1-10)", min_value=1, max_value=10, value=5)
+    # Numeric inputs
+    age = st.slider("What is your age?", min_value=18, max_value=100, value=40)
+    oxygen_saturation = st.slider("Oxygen saturation level (%)", min_value=70, max_value=100, value=98)
+    energy_level = st.slider("Rate your energy level (1-10)", min_value=1, max_value=10, value=5)
 
-        user_responses.append(age)
-        user_responses.append(oxygen_saturation)
-        user_responses.append(energy_level)
+    user_responses.append(age)
+    user_responses.append(oxygen_saturation)
+    user_responses.append(energy_level)
 
-        # Gender selection (rest of your code remains the same)
-        gender = st.radio("Select your gender:", ('Male', 'Female'))
-        user_responses.append(1 if gender == 'Female' else 0)
+    # Gender selection (0 for Male, 1 for Female)
+    gender = st.radio("Select your gender:", ('Male', 'Female'))
+    user_responses.append(1 if gender == 'Female' else 0)
 
-        # Prediction using Gemini API
-        if st.button("Predict"):
+    # Prediction using Random Forest model
+    if st.button("Predict"):
+        try:
+            user_input_df = pd.DataFrame([user_responses], columns=feature_names)
+            prediction_probability = model.predict_proba(user_input_df)[0][1] * 100 #probability of cancer
+            prediction_probability = round(prediction_probability, 2)
             user_input_str = ", ".join([f"{feature}: {value}" for feature, value in zip(feature_names, user_responses)])
 
             # Construct prompt for Gemini
             prompt = f"""
-            Given the following health data: {user_input_str}, predict the likelihood of lung cancer in percentage.
-            Explain why this percentage was given and suggest lifestyle changes or medical advice to reduce risk.
+            The patient has a {prediction_probability}% chance of lung cancer detection based on these factors: {user_input_str}.
+            Based on these factors, how can the patient stay healthier for longer? Provide specific lifestyle changes and medical advice.
+            Include helpful links.
             """
 
-            try:
-                # IMPORTANT: Replace "gemini-1.5" with the correct model name
-                model = genai.GenerativeModel("gemini-ultra")
-                response = model.generate_content(prompt)
-                st.subheader("Lung Cancer Prediction Result:")
-                st.write(response.text)
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
-                st.warning("Please ensure your API key is correct and the model is available.")
+            model_gemini = genai.GenerativeModel("gemini-pro") #or other available model
+            response = model_gemini.generate_content(prompt)
 
-    except Exception as e:
-        st.error(f"Error listing models: {e}")
+            st.subheader("Lung Cancer Risk and Advice:")
+            st.write(response.text)
+
+        except Exception as e:
+            st.error(f"An error occurred during prediction: {e}")
