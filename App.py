@@ -1,52 +1,49 @@
 import streamlit as st
 import joblib
-import numpy as np
+import openai  # GPT API
+import pandas as pd
 
-# Load trained Random Forest model
-rf_model = joblib.load("lung_cancer_rf.pckl")
+# Load the trained model
+model = joblib.load("model.pckl")
 
-# Feature names (Ensure these match exactly with dataset column names)
-feature_names = [
-    "SMOKING", "ENERGY_LEVEL", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "OXYGEN_SATURATION",
-    "AGE", "SMOKING_FAMILY_HISTORY", "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY",
-    "IMMUNE_WEAKNESS", "CHEST_TIGHTNESS", "ALCOHOL_CONSUMPTION", "LONG_TERM_ILLNESS",
-    "MENTAL_STRESS", "GENDER", "FINGER_DISCOLORATION"
-]
+# Set up OpenAI API
+openai.api_key = "your_openai_api_key"  # Replace with your key
+
+# Function to get GPT explanation
+def get_gpt_explanation(user_inputs, prediction):
+    prompt = f"""
+    A patient has entered the following symptoms: {user_inputs}.
+    The AI model predicted a {prediction}% chance of lung cancer.
+    Explain why this prediction was made and suggest lifestyle changes.
+    """
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "system", "content": "You are a medical assistant providing helpful advice."},
+                  {"role": "user", "content": prompt}]
+    )
+    return response["choices"][0]["message"]["content"]
 
 # Streamlit UI
-st.title("Lung Cancer Prediction App")
-st.write("Answer the following questions to assess your lung cancer risk.")
+st.title("Lung Cancer Prediction & AI Advisor")
 
-# User inputs
-user_responses = []
+# Collect user inputs
+smoking = st.selectbox("Do you smoke?", ["Yes", "No"])
+age = st.number_input("Enter your age", min_value=10, max_value=100)
+breathing_issue = st.selectbox("Do you have breathing issues?", ["Yes", "No"])
 
-# Ask Yes/No questions for categorical features
-yes_no_features = [
-    "SMOKING", "THROAT_DISCOMFORT", "BREATHING_ISSUE", "SMOKING_FAMILY_HISTORY", 
-    "STRESS_IMMUNE", "EXPOSURE_TO_POLLUTION", "FAMILY_HISTORY", "IMMUNE_WEAKNESS", 
-    "CHEST_TIGHTNESS", "ALCOHOL_CONSUMPTION", "LONG_TERM_ILLNESS", "MENTAL_STRESS", 
-    "FINGER_DISCOLORATION"
-]
+# Convert to DataFrame for model
+input_data = pd.DataFrame([[smoking, age, breathing_issue]], 
+                          columns=['SMOKING', 'AGE', 'BREATHING_ISSUE'])
 
-for feature in yes_no_features:
-    response = st.radio(f"Do you have {feature.replace('_', ' ').lower()}?", ('No', 'Yes'))
-    user_responses.append(1 if response == 'Yes' else 0)
+# Convert categorical to numeric
+input_data.replace({'Yes': 1, 'No': 0}, inplace=True)
 
-# Numeric inputs for continuous variables
-age = st.slider("What is your age?", min_value=18, max_value=100, value=40)
-oxygen_saturation = st.slider("Oxygen saturation level (%)", min_value=70, max_value=100, value=98)
-energy_level = st.slider("Rate your energy level (1-10)", min_value=1, max_value=10, value=5)
+# Make Prediction
+prediction_proba = model.predict_proba(input_data)[0][1] * 100  # Get percentage
+st.write(f"🩺 Your lung cancer risk: **{prediction_proba:.2f}%**")
 
-user_responses.append(age)
-user_responses.append(oxygen_saturation)
-user_responses.append(energy_level)
-
-# Gender selection (0 for Male, 1 for Female)
-gender = st.radio("Select your gender:", ('Male', 'Female'))
-user_responses.append(1 if gender == 'Female' else 0)
-
-# Prediction
-if st.button("Predict"):
-    input_array = np.array([user_responses]).reshape(1, -1)
-    probability = rf_model.predict_proba(input_array)[0][1] * 100  # Convert to percentage
-    st.subheader(f"Lung Cancer Probability: {probability:.2f}%")
+# Get GPT Explanation
+if st.button("Ask AI for Advice"):
+    advice = get_gpt_explanation(input_data.to_dict(), prediction_proba)
+    st.write("💡 AI Advice:")
+    st.write(advice)
