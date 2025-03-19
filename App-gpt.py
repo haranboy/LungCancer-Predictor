@@ -63,16 +63,18 @@ if st.button("Predict"):
     They provided the following answers:
     {dict(zip(feature_names, user_responses))}
     
-    Explain this result simply and provide medical advice.
-    """
+    # Initialize OpenAI client with API key
+    client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are a medical assistant providing explanations in simple terms."},
+            {"role": "system", "content": "You are a medical assistant providing clear, simple advice."},
             {"role": "user", "content": prompt}
         ]
     )
+
+gpt_explanation = response.choices[0].message.content
 
     gpt_explanation = response["choices"][0]["message"]["content"]
     
