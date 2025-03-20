@@ -126,7 +126,17 @@ with result_col1:
                     # AI Health Advice
                     if API_KEY:
                         try:
-                            prompt = f"The patient's predicted lung cancer probability is {prediction_prob:.2f}%. Provide concise lifestyle changes."
+                            prompt = f"""
+                                        The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
+                                        Provide a **detailed medical analysis** on the potential causes based on their input factors. 
+                                        Include **precautionary lifestyle changes, dietary adjustments, medical tests**, and when to seek medical help.
+                                        Structure the response as:
+                                        1️⃣ **Potential Causes**
+                                        2️⃣ **Recommended Lifestyle Changes**
+                                        3️⃣ **Dietary Adjustments**
+                                        4️⃣ **Medical Tests & Next Steps**
+                                        Keep the response **medically sound, structured, and detailed.**
+                                        """
                             model_gemini = genai.GenerativeModel("gemini-1.5-flash")
                             response = model_gemini.generate_content(prompt)
                             
