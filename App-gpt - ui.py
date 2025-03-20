@@ -92,35 +92,39 @@ with result_col1:  # Left Side - Prediction Section
                 else:
                     st.error(f"🚨 High Risk: {prediction_prob:.2f}%")
 
-with result_col2:  # Right Side - AI Advice & Feature Importance Chart
-    # AI Health Advice
-    if API_KEY:
-        try:
-            prompt = f"""
-            The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
-            Provide **specific medical advice and lifestyle changes** to help reduce the risk. 
-            Keep it concise and actionable.
-            """
-            model_gemini = genai.GenerativeModel("gemini-1.5-flash")
-            response = model_gemini.generate_content(prompt)
-            st.subheader("AI Health Advice")
-            with st.expander("Click to view AI-generated health advice"):
-                st.write(response.text)
-        except Exception as e:
-            st.warning(f"Gemini API Error: {e}")
+                # ✅ Move AI & Graph inside button click block
+                with result_col2:
+                    # AI Health Advice
+                    if API_KEY:
+                        try:
+                            prompt = f"""
+                            The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
+                            Provide **specific medical advice and lifestyle changes** to help reduce the risk. 
+                            Keep it concise and actionable.
+                            """
+                            model_gemini = genai.GenerativeModel("gemini-1.5-flash")
+                            response = model_gemini.generate_content(prompt)
+                            st.subheader("AI Health Advice")
+                            with st.expander("Click to view AI-generated health advice"):
+                                st.write(response.text)
+                        except Exception as e:
+                            st.warning(f"Gemini API Error: {e}")
 
-    # Feature Importance Visualization
-    st.subheader("🔍 Factors Affecting Your Risk")
-    feature_importances = model.feature_importances_
-    feature_importance_df = pd.DataFrame({
-        'Feature': feature_order,
-        'Importance': feature_importances
-    }).sort_values(by="Importance", ascending=False)
+                    # Feature Importance Visualization
+                    st.subheader("🔍 Factors Affecting Your Risk")
+                    feature_importances = model.feature_importances_
+                    feature_importance_df = pd.DataFrame({
+                        'Feature': feature_order,
+                        'Importance': feature_importances
+                    }).sort_values(by="Importance", ascending=False)
 
-    # Plot feature importance
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
-    ax.set_xlabel("Importance Score")
-    ax.set_title("Feature Importance")
-    ax.invert_yaxis()
-    st.pyplot(fig)
+                    # Plot feature importance
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
+                    ax.set_xlabel("Importance Score")
+                    ax.set_title("Feature Importance")
+                    ax.invert_yaxis()
+                    st.pyplot(fig)
+
+            except Exception as e:
+                st.error(f"Prediction Error: {e}")
