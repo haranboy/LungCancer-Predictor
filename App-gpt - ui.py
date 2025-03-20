@@ -95,24 +95,30 @@ with result_col1:  # Left Side - Prediction Section
 
                 # ✅ Move AI & Graph inside button click block
                 with result_col2:
-                    # AI Health Advice
-                    if API_KEY:
-                        try:
-                            prompt = f"""
-                            The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
-                            Provide **specific medical advice and lifestyle changes** to help reduce the risk. 
-                            Keep it concise and actionable.
-                            """
-                            model_gemini = genai.GenerativeModel("gemini-1.5-flash")
-                            response = model_gemini.generate_content(prompt)
-                            st.subheader("AI Health Advice")
-                            with st.expander("Click to view AI-generated health advice"):
-                                if response.candidates:
-                                    st.write(response.candidates[0].content.text)
-                                else:
-                                    st.warning("AI did not generate a response.")
-                        except Exception as e:
-                            st.warning(f"Gemini API Error: {e}")
+                # AI Health Advice
+                if API_KEY:
+                    try:
+                        prompt = f"""
+                        The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
+                        Provide **specific medical advice and lifestyle changes** to help reduce the risk. 
+                        Keep it concise and actionable.
+                        """
+                        model_gemini = genai.GenerativeModel("gemini-1.5-flash")
+                        response = model_gemini.generate_content(prompt)
+                        
+                        st.subheader("AI Health Advice")
+                        with st.expander("Click to view AI-generated health advice"):
+                            if response and hasattr(response, "text"):
+                                st.write(response.text)
+                            elif response and hasattr(response, "candidates"):
+                                st.write(response.candidates[0].content.parts[0].text)
+                            else:
+                                st.warning("AI did not generate a response.")
+                
+                    except Exception as e:
+                        st.warning(f"Gemini API Error: {e}")
+                
+                
 
                     # Feature Importance Visualization
                     st.subheader("🔍 Factors Affecting Your Risk")
