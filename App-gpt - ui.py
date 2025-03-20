@@ -80,10 +80,12 @@ st.markdown("""
         /* Advice Box */
         .advice-box {
             background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 500;
+            padding: 5px;  /* Reduced padding */
+            border-radius: 8px;
+            font-size: 14px; /* Reduced font size */
+            font-weight: 400; /* Slightly thinner text */
+            line-height: 1.4; /* Adjust spacing for better readability */
+            width: 90%; /* Slightly narrower */
         }
 
         /* Adjust Yes/No Buttons */
