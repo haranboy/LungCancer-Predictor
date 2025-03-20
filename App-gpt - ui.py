@@ -27,6 +27,7 @@ def configure_api():
 # Load Model & API
 model = load_model()
 API_KEY = configure_api()
+
 feature_order = [
     'AGE', 'GENDER', 'SMOKING', 'FINGER_DISCOLORATION', 'MENTAL_STRESS',
     'EXPOSURE_TO_POLLUTION', 'LONG_TERM_ILLNESS', 'ENERGY_LEVEL',
@@ -106,25 +107,30 @@ with result_col1:  # Left Side - Prediction Section
                             response = model_gemini.generate_content(prompt)
                             st.subheader("AI Health Advice")
                             with st.expander("Click to view AI-generated health advice"):
-                                st.write(response.text)
+                                if response.candidates:
+                                    st.write(response.candidates[0].content.text)
+                                else:
+                                    st.warning("AI did not generate a response.")
                         except Exception as e:
                             st.warning(f"Gemini API Error: {e}")
 
                     # Feature Importance Visualization
                     st.subheader("🔍 Factors Affecting Your Risk")
-                    feature_importances = model.feature_importances_
-                    feature_importance_df = pd.DataFrame({
-                        'Feature': feature_order,
-                        'Importance': feature_importances
-                    }).sort_values(by="Importance", ascending=False)
+                    if hasattr(model, "feature_importances_"):  # Ensure feature importances exist
+                        feature_importance_df = pd.DataFrame({
+                            'Feature': feature_order,
+                            'Importance': model.feature_importances_
+                        }).sort_values(by="Importance", ascending=False)
 
-                    # Plot feature importance
-                    fig, ax = plt.subplots(figsize=(6, 4))
-                    ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
-                    ax.set_xlabel("Importance Score")
-                    ax.set_title("Feature Importance")
-                    ax.invert_yaxis()
-                    st.pyplot(fig)
+                        # Plot feature importance
+                        fig, ax = plt.subplots(figsize=(6, 4))
+                        ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
+                        ax.set_xlabel("Importance Score")
+                        ax.set_title("Feature Importance")
+                        ax.invert_yaxis()
+                        st.pyplot(fig)
+                    else:
+                        st.warning("Feature importance visualization unavailable for this model.")
 
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
