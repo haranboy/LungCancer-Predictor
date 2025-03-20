@@ -35,7 +35,7 @@ feature_order = [
 ]
 
 # Sidebar UI
-st.sidebar.image("https://via.placeholder.com/150", caption="Lung Health AI", use_column_width=True)
+st.sidebar.image("https://via.placeholder.com/150", caption="Lung Health AI", use_container_width=True)
 st.sidebar.header("Navigation")
 st.sidebar.markdown("Use this tool to assess lung cancer risk.")
 
