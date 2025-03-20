@@ -39,6 +39,49 @@ feature_order = [
     'FAMILY_HISTORY', 'SMOKING_FAMILY_HISTORY', 'STRESS_IMMUNE'
 ]
 
+# Custom CSS for Better Styling
+st.markdown("""
+    <style>
+        /* Custom header */
+        .main-title {
+            font-size: 36px;
+            color: #ffffff;
+            text-align: center;
+            background: linear-gradient(to right, #06beb6, #48b1bf);
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        /* Sidebar Styling */
+        .css-1d391kg {background: #f8f9fa !important;}
+        
+        /* Prediction Box */
+        .prediction-box {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .low-risk {background: #28a745;}
+        .moderate-risk {background: #ffc107; color: #333;}
+        .high-risk {background: #dc3545;}
+        
+        /* Advice Box */
+        .advice-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Header
+st.markdown('<div class="main-title">Lung Cancer Prediction AI</div>', unsafe_allow_html=True)
+
 # Sidebar UI
 st.sidebar.image("https://via.placeholder.com/150", caption="Lung Health AI", use_container_width=True)
 st.sidebar.header("Navigation")
@@ -48,88 +91,61 @@ st.sidebar.markdown("Use this tool to assess lung cancer risk.")
 col1, col2 = st.columns([2, 1])  # Left: 2x width, Right: 1x width
 
 with col1:
-    st.title("Lung Cancer Prediction")
-    st.write("Answer the questions to assess your lung cancer risk.")
+    st.subheader("Enter Your Health Details")
 
     response_dict = {feature: 0 for feature in feature_order}  # Initialize defaults
 
-    # Grid Layout (3 per row)
-    input_cols = st.columns(3)
-
-    # Numeric Inputs (Age, Oxygen, Energy)
-    response_dict["AGE"] = input_cols[0].slider("Age:", 18, 100, 40)
-    response_dict["OXYGEN_SATURATION"] = input_cols[1].slider("Oxygen Saturation (%):", 70, 100, 98)
-    response_dict["ENERGY_LEVEL"] = input_cols[2].slider("Energy Level (1-10):", 1, 10, 5)
+    # Numeric Inputs
+    response_dict["AGE"] = st.slider("Age:", 18, 100, 40)
+    response_dict["OXYGEN_SATURATION"] = st.slider("Oxygen Saturation (%):", 70, 100, 98)
+    response_dict["ENERGY_LEVEL"] = st.slider("Energy Level (1-10):", 1, 10, 5)
 
     # Gender Selection
-    response_dict["GENDER"] = 1 if input_cols[0].radio("Gender:", ('Male', 'Female'), horizontal=True) == 'Female' else 0
+    response_dict["GENDER"] = 1 if st.radio("Gender:", ('Male', 'Female'), horizontal=True) == 'Female' else 0
 
-    # Yes/No Features in rows of 3
-    yes_no_features = [
-        "SMOKING", "FINGER_DISCOLORATION", "MENTAL_STRESS", "EXPOSURE_TO_POLLUTION",
-        "LONG_TERM_ILLNESS", "IMMUNE_WEAKNESS", "BREATHING_ISSUE", "ALCOHOL_CONSUMPTION",
-        "THROAT_DISCOMFORT", "CHEST_TIGHTNESS", "FAMILY_HISTORY", "SMOKING_FAMILY_HISTORY",
-        "STRESS_IMMUNE"
-    ]
-    
-    for i in range(0, len(yes_no_features), 3):
-        row = st.columns(3)
-        for j, feature in enumerate(yes_no_features[i:i+3]):
-            response_dict[feature] = 1 if row[j].radio(feature.replace("_", " ").title(), ('No', 'Yes'), horizontal=True) == 'Yes' else 0
+    # Yes/No Features
+    for feature in feature_order[2:]:
+        response_dict[feature] = 1 if st.radio(feature.replace("_", " ").title(), ('No', 'Yes'), horizontal=True) == 'Yes' else 0
 
-# Results Section Layout
-result_col1, result_col2 = st.columns([1, 3])  # 🔴 Left: Prediction | 🔵 Right: AI Advice & Graph
+# Results Section
+result_col1, result_col2 = st.columns([1, 3])
 
-with result_col1:  # Left Side - Prediction Section
+with result_col1:
     if st.button("Predict chance", use_container_width=True):
         with st.spinner("Analyzing risk factors..."):
             try:
                 user_input_df = pd.DataFrame([[response_dict[feature] for feature in feature_order]], columns=feature_order)
                 prediction_prob = model.predict_proba(user_input_df)[0][1] * 100
 
-                # Prediction Result Section
-                st.subheader("Prediction Result")
-                if prediction_prob < 30:
-                    st.success(f"✅ Low Risk: {prediction_prob:.2f}%")
-                elif prediction_prob < 70:
-                    st.warning(f"⚠️ Moderate Risk: {prediction_prob:.2f}%")
-                else:
-                    st.error(f"🚨 High Risk: {prediction_prob:.2f}%")
+                # Prediction Result Styling
+                risk_class = "low-risk" if prediction_prob < 30 else "moderate-risk" if prediction_prob < 70 else "high-risk"
+                st.markdown(f'<div class="prediction-box {risk_class}">Risk Level: {prediction_prob:.2f}%</div>', unsafe_allow_html=True)
+                st.progress(prediction_prob / 100)
 
-                # ✅ Move AI & Graph inside button click block
                 with result_col2:
                     # AI Health Advice
                     if API_KEY:
                         try:
-                            prompt = f"""
-                            The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
-                            Provide **specific medical advice and lifestyle changes** to help reduce the risk. 
-                            Keep it concise and actionable.
-                            """
+                            prompt = f"The patient's predicted lung cancer probability is {prediction_prob:.2f}%. Provide concise lifestyle changes."
                             model_gemini = genai.GenerativeModel("gemini-1.5-flash")
                             response = model_gemini.generate_content(prompt)
                             
                             st.subheader("AI Health Advice")
-                            with st.expander("Click to view AI-generated health advice"):
-                                if response and hasattr(response, "text"):
-                                    st.write(response.text)
-                                elif response and hasattr(response, "candidates"):
-                                    st.write(response.candidates[0].content.parts[0].text)
-                                else:
-                                    st.warning("AI did not generate a response.")
-
+                            st.markdown('<div class="advice-box">', unsafe_allow_html=True)
+                            st.write(response.text if response else "No advice generated.")
+                            st.markdown('</div>', unsafe_allow_html=True)
+                        
                         except Exception as e:
                             st.warning(f"Gemini API Error: {e}")
 
-                    # Feature Importance Visualization
+                    # Feature Importance Graph
                     st.subheader("🔍 Factors Affecting Your Risk")
-                    if hasattr(model, "feature_importances_"):  # Ensure feature importances exist
+                    if hasattr(model, "feature_importances_"):
                         feature_importance_df = pd.DataFrame({
                             'Feature': feature_order,
                             'Importance': model.feature_importances_
                         }).sort_values(by="Importance", ascending=False)
 
-                        # Plot feature importance
                         fig, ax = plt.subplots(figsize=(6, 4))
                         ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
                         ax.set_xlabel("Importance Score")
@@ -137,7 +153,7 @@ with result_col1:  # Left Side - Prediction Section
                         ax.invert_yaxis()
                         st.pyplot(fig)
                     else:
-                        st.warning("Feature importance visualization unavailable for this model.")
+                        st.warning("Feature importance visualization unavailable.")
 
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
