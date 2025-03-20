@@ -119,15 +119,18 @@ with col1:
 
     # Gender Selection
     response_dict["GENDER"] = 1 if st.radio("Gender:", ('Male', 'Female'), horizontal=True) == 'Female' else 0
-
     # Yes/No Features (Blue Box - Two per Row)
-    with st.container():
-        st.markdown('<div class="yes-no-container">', unsafe_allow_html=True)
-        for feature in feature_order[2:]:
-            col_a, col_b = st.columns(2)
-            with col_a:
-                response_dict[feature] = 1 if st.radio(feature.replace("_", " ").title(), ('No', 'Yes'), horizontal=True, key=feature) == 'Yes' else 0
-        st.markdown('</div>', unsafe_allow_html=True)
+    yes_no_features = feature_order[2:]  # Select only the Yes/No features
+    
+    for i in range(0, len(yes_no_features), 2):  # Step by 2 to place two items per row
+        cols = st.columns(2)  # Create two columns for each row
+        for j in range(2):
+            if i + j < len(yes_no_features):  # Ensure we don't go out of bounds
+                feature = yes_no_features[i + j]
+                with cols[j]:
+                    response_dict[feature] = 1 if st.radio(
+                        feature.replace("_", " ").title(), ('No', 'Yes'), horizontal=True, key=feature
+                    ) == 'Yes' else 0
 
 with col2:
     st.markdown('<div class="right-panel">', unsafe_allow_html=True)  # Move Left & Down
