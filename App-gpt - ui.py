@@ -105,7 +105,7 @@ st.markdown('<div class="main-title">Lung Cancer Prediction AI</div>', unsafe_al
 col1, col2 = st.columns([2, 1])  # Left: Inputs (2x width), Right: Results (1x width)
 
 with col1:
-    st.subheader("Enter Your Health Details")
+    #st.subheader("Enter Your Health Details")
 
     response_dict = {feature: 0 for feature in feature_order}  # Initialize defaults
 
