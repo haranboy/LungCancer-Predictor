@@ -44,13 +44,13 @@ st.markdown("""
     <style>
         /* Title Styling */
         .main-title {
-            font-size: 36px;
+            font-size: 48px;
             color: #ffffff;
             text-align: center;
             background: linear-gradient(to right, #06beb6, #48b1bf);
-            padding: 15px;
+            padding: 10px;
             border-radius: 10px;
-            font-weight: bold;
+            #font-weight: bold;
         }
 
         /* Adjusting Input Section (Yellow Box) */
