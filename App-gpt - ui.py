@@ -41,7 +41,7 @@ st.sidebar.header("Navigation")
 st.sidebar.markdown("Use this tool to assess lung cancer risk.")
 
 # Layout: Left (Inputs) | Right (Results)
-col1, col2 = st.columns([3, 1])  # Left: 3x width, Right: 1x width
+col1, col2 = st.columns([2, 1])  # Left: 2x width, Right: 1x width
 
 with col1:
     st.title("Lung Cancer Prediction")
@@ -73,9 +73,11 @@ with col1:
         for j, feature in enumerate(yes_no_features[i:i+3]):
             response_dict[feature] = 1 if row[j].radio(feature.replace("_", " ").title(), ('No', 'Yes'), horizontal=True) == 'Yes' else 0
 
-# Predict Button on Right Side
-with col2:
-    if st.button("Predict", use_container_width=True):
+# Results Section Layout
+result_col1, result_col2 = st.columns([3, 1])  # AI Advice & Chart: 3x width of the Predict button
+
+with result_col2:  # Small column for the predict button
+    if st.button("Predict chance", use_container_width=True):
         with st.spinner("Analyzing risk factors..."):
             try:
                 user_input_df = pd.DataFrame([[response_dict[feature] for feature in feature_order]], columns=feature_order)
@@ -90,37 +92,39 @@ with col2:
                 else:
                     st.error(f"🚨 High Risk: {prediction_prob:.2f}%")
 
-                # AI Health Advice
-                if API_KEY:
-                    try:
-                        prompt = f"""
-                        The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
-                        Provide **specific medical advice and lifestyle changes** to help reduce the risk. 
-                        Keep it concise and actionable.
-                        """
-                        model_gemini = genai.GenerativeModel("gemini-1.5-flash")
-                        response = model_gemini.generate_content(prompt)
-                        st.subheader("AI Health Advice")
-                        with st.expander("Click to view AI-generated health advice"):
-                            st.write(response.text)
-                    except Exception as e:
-                        st.warning(f"Gemini API Error: {e}")
+                # AI Health Advice & Feature Importance Chart (Larger Space)
+                with result_col1:
+                    # AI Health Advice
+                    if API_KEY:
+                        try:
+                            prompt = f"""
+                            The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
+                            Provide **specific medical advice and lifestyle changes** to help reduce the risk. 
+                            Keep it concise and actionable.
+                            """
+                            model_gemini = genai.GenerativeModel("gemini-1.5-flash")
+                            response = model_gemini.generate_content(prompt)
+                            st.subheader("AI Health Advice")
+                            with st.expander("Click to view AI-generated health advice"):
+                                st.write(response.text)
+                        except Exception as e:
+                            st.warning(f"Gemini API Error: {e}")
 
-                # Feature Importance Visualization
-                st.subheader("🔍 Factors Affecting Your Risk")
-                feature_importances = model.feature_importances_
-                feature_importance_df = pd.DataFrame({
-                    'Feature': feature_order,
-                    'Importance': feature_importances
-                }).sort_values(by="Importance", ascending=False)
+                    # Feature Importance Visualization
+                    st.subheader("🔍 Factors Affecting Your Risk")
+                    feature_importances = model.feature_importances_
+                    feature_importance_df = pd.DataFrame({
+                        'Feature': feature_order,
+                        'Importance': feature_importances
+                    }).sort_values(by="Importance", ascending=False)
 
-                # Plot feature importance
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
-                ax.set_xlabel("Importance Score")
-                ax.set_title("Feature Importance")
-                ax.invert_yaxis()
-                st.pyplot(fig)
+                    # Plot feature importance
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
+                    ax.set_xlabel("Importance Score")
+                    ax.set_title("Feature Importance")
+                    ax.invert_yaxis()
+                    st.pyplot(fig)
 
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
