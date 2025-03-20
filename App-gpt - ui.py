@@ -39,10 +39,10 @@ feature_order = [
     'FAMILY_HISTORY', 'SMOKING_FAMILY_HISTORY', 'STRESS_IMMUNE'
 ]
 
-# Custom CSS for Better Styling
+# Custom CSS for Precise Styling
 st.markdown("""
     <style>
-        /* Custom header */
+        /* Title Styling */
         .main-title {
             font-size: 36px;
             color: #ffffff;
@@ -52,6 +52,18 @@ st.markdown("""
             border-radius: 10px;
             font-weight: bold;
         }
+
+        /* Adjusting Input Section (Yellow Box) */
+        .input-section {
+            width: calc(100% - 5px); /* Reduced width by 5px */
+        }
+
+        /* Right Section (Red Box) */
+        .right-panel {
+            margin-left: -4px; /* Move left by 4px */
+            margin-top: 2px; /* Move down by 2px */
+        }
+
         /* Prediction Box */
         .prediction-box {
             padding: 20px;
@@ -64,6 +76,7 @@ st.markdown("""
         .low-risk {background: #28a745;}
         .moderate-risk {background: #ffc107; color: #333;}
         .high-risk {background: #dc3545;}
+
         /* Advice Box */
         .advice-box {
             background: #f8f9fa;
@@ -72,10 +85,21 @@ st.markdown("""
             font-size: 16px;
             font-weight: 500;
         }
+
+        /* Adjust Yes/No Buttons */
+        .yes-no-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .yes-no-item {
+            width: 48%; /* Two items per row */
+            margin-bottom: 5px;
+        }
     </style>
 """, unsafe_allow_html=True)
 
-# Page Layout: Title (Top), Inputs (Left), Results (Right)
+# Page Layout: Title, Inputs (Left), Results (Right)
 st.markdown('<div class="main-title">Lung Cancer Prediction AI</div>', unsafe_allow_html=True)
 
 col1, col2 = st.columns([2, 1])  # Left: Inputs (2x width), Right: Results (1x width)
@@ -85,19 +109,29 @@ with col1:
 
     response_dict = {feature: 0 for feature in feature_order}  # Initialize defaults
 
-    # Numeric Inputs
-    response_dict["AGE"] = st.slider("Age:", 18, 100, 40)
-    response_dict["OXYGEN_SATURATION"] = st.slider("Oxygen Saturation (%):", 70, 100, 98)
-    response_dict["ENERGY_LEVEL"] = st.slider("Energy Level (1-10):", 1, 10, 5)
+    # Numeric Inputs (Yellow Box - Adjusted Width)
+    with st.container():
+        st.markdown('<div class="input-section">', unsafe_allow_html=True)
+        response_dict["AGE"] = st.slider("Age:", 18, 100, 40)
+        response_dict["OXYGEN_SATURATION"] = st.slider("Oxygen Saturation (%):", 70, 100, 98)
+        response_dict["ENERGY_LEVEL"] = st.slider("Energy Level (1-10):", 1, 10, 5)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # Gender Selection
     response_dict["GENDER"] = 1 if st.radio("Gender:", ('Male', 'Female'), horizontal=True) == 'Female' else 0
 
-    # Yes/No Features
-    for feature in feature_order[2:]:
-        response_dict[feature] = 1 if st.radio(feature.replace("_", " ").title(), ('No', 'Yes'), horizontal=True) == 'Yes' else 0
+    # Yes/No Features (Blue Box - Two per Row)
+    with st.container():
+        st.markdown('<div class="yes-no-container">', unsafe_allow_html=True)
+        for feature in feature_order[2:]:
+            col_a, col_b = st.columns(2)
+            with col_a:
+                response_dict[feature] = 1 if st.radio(feature.replace("_", " ").title(), ('No', 'Yes'), horizontal=True, key=feature) == 'Yes' else 0
+        st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
+    st.markdown('<div class="right-panel">', unsafe_allow_html=True)  # Move Left & Down
+
     if st.button("Predict Chance", use_container_width=True):
         with st.spinner("Analyzing risk factors..."):
             try:
@@ -109,36 +143,7 @@ with col2:
                 st.markdown(f'<div class="prediction-box {risk_class}">Risk Level: {prediction_prob:.2f}%</div>', unsafe_allow_html=True)
                 st.progress(prediction_prob / 100)
 
-                # AI Health Advice
-                if API_KEY:
-                    try:
-                        prompt = f"""
-                        The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
-                        Provide a **detailed medical analysis** on the potential causes based on their input factors. 
-                        Include **precautionary lifestyle changes, dietary adjustments, medical tests**, and when to seek medical help.
-                        Structure the response as:
-                        1️⃣ **Potential Causes**
-                        2️⃣ **Recommended Lifestyle Changes**
-                        3️⃣ **Dietary Adjustments**
-                        4️⃣ **Medical Tests & Next Steps**
-                        Keep the response **medically sound, structured, and detailed.**
-                        """
-                        model_gemini = genai.GenerativeModel("gemini-1.5-flash")
-                        response = model_gemini.generate_content(prompt)
-                        
-                        st.subheader("🩺 AI-Generated Health Advice")
-                        with st.expander("Click to view AI-generated health recommendations"):
-                            if response and hasattr(response, "text"):
-                                st.markdown(f'<div class="advice-box">{response.text}</div>', unsafe_allow_html=True)
-                            elif response and hasattr(response, "candidates"):
-                                st.markdown(f'<div class="advice-box">{response.candidates[0].content.parts[0].text}</div>', unsafe_allow_html=True)
-                            else:
-                                st.warning("AI did not generate a response.")
-                    
-                    except Exception as e:
-                        st.warning(f"Gemini API Error: {e}")
-
-                # Feature Importance Graph
+                # Feature Importance Graph (Moved Above AI Health Advice)
                 st.subheader("🔍 Factors Affecting Your Risk")
                 if hasattr(model, "feature_importances_"):
                     feature_importance_df = pd.DataFrame({
@@ -155,5 +160,33 @@ with col2:
                 else:
                     st.warning("Feature importance visualization unavailable.")
 
+                # AI Health Advice (Below Graph)
+                if API_KEY:
+                    try:
+                        prompt = f"""
+                        The patient's predicted lung cancer probability is {prediction_prob:.2f}%. 
+                        Provide a **detailed medical analysis** on the potential causes based on their input factors. 
+                        Include **precautionary lifestyle changes, dietary adjustments, medical tests**, and when to seek medical help.
+                        Structure the response as:
+                        1️⃣ **Potential Causes**
+                        2️⃣ **Recommended Lifestyle Changes**
+                        3️⃣ **Dietary Adjustments**
+                        4️⃣ **Medical Tests & Next Steps**
+                        """
+                        model_gemini = genai.GenerativeModel("gemini-1.5-flash")
+                        response = model_gemini.generate_content(prompt)
+                        
+                        st.subheader("🩺 AI-Generated Health Advice")
+                        with st.expander("Click to view AI-generated health recommendations"):
+                            if response and hasattr(response, "text"):
+                                st.markdown(f'<div class="advice-box">{response.text}</div>', unsafe_allow_html=True)
+                            else:
+                                st.warning("AI did not generate a response.")
+                    
+                    except Exception as e:
+                        st.warning(f"Gemini API Error: {e}")
+
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
+
+    st.markdown('</div>', unsafe_allow_html=True)  # Close Right Panel
