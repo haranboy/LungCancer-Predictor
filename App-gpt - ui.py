@@ -141,9 +141,13 @@ with result_col1:
                             response = model_gemini.generate_content(prompt)
                             
                             st.subheader("AI Health Advice")
-                            st.markdown('<div class="advice-box">', unsafe_allow_html=True)
-                            st.write(response.text if response else "No advice generated.")
-                            st.markdown('</div>', unsafe_allow_html=True)
+                            with st.expander("Click to view AI-generated health recommendations"):
+                                if response and hasattr(response, "text"):
+                                    st.markdown(f'<div class="advice-box">{response.text}</div>', unsafe_allow_html=True)
+                                elif response and hasattr(response, "candidates"):
+                                    st.markdown(f'<div class="advice-box">{response.candidates[0].content.parts[0].text}</div>', unsafe_allow_html=True)
+                                else:
+                                    st.warning("AI did not generate a response.")
                         
                         except Exception as e:
                             st.warning(f"Gemini API Error: {e}")
