@@ -82,7 +82,7 @@ st.markdown("""
             background: #f8f9fa;
             padding: 8px;
             font-size: 14px;
-            width: 100%;  /* Ensures full-width on mobile */
+            #width: 100%;  /* Ensures full-width on mobile */
             box-shadow: none;  /* Removes any extra styling */
             border-left: 4px solid #48b1bf; /* Subtle left border for separation */
         }
@@ -166,10 +166,10 @@ with col2:
                         st.subheader("🩺 AI-Generated Health Advice")
                         with st.expander("Click to view AI-generated health recommendations"):
                             if response and hasattr(response, "text"):
-                                st.markdown(f'<div class="advice-box">{response.text}</div>', unsafe_allow_html=True)
+                                st.write(response.text)  # Using Streamlit's native text formatting
                             else:
                                 st.warning("AI did not generate a response.")
-                    
+
                     except Exception as e:
                         st.warning(f"Gemini API Error: {e}")
                 
