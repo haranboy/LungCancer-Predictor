@@ -41,7 +41,7 @@ st.sidebar.header("Navigation")
 st.sidebar.markdown("Use this tool to assess lung cancer risk.")
 
 # Layout: Left (Inputs) | Right (Results)
-col1, col2 = st.columns([2, 1])  # Left: 2x width, Right: 1x width
+col1, col2 = st.columns([3, 1])  # Left: 3x width, Right: 1x width
 
 with col1:
     st.title("Lung Cancer Prediction")
