@@ -148,23 +148,6 @@ with col2:
                 st.markdown(f'<div class="prediction-box {risk_class}">Risk Level: {prediction_prob:.2f}%</div>', unsafe_allow_html=True)
                 st.progress(prediction_prob / 100)
 
-                # Feature Importance Graph (Moved Above AI Health Advice)
-                st.subheader("🔍 Factors Affecting Your Risk")
-                if hasattr(model, "feature_importances_"):
-                    feature_importance_df = pd.DataFrame({
-                        'Feature': feature_order,
-                        'Importance': model.feature_importances_
-                    }).sort_values(by="Importance", ascending=False)
-
-                    fig, ax = plt.subplots(figsize=(6, 4))
-                    ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
-                    ax.set_xlabel("Importance Score")
-                    ax.set_title("Feature Importance")
-                    ax.invert_yaxis()
-                    st.pyplot(fig)
-                else:
-                    st.warning("Feature importance visualization unavailable.")
-
                 # AI Health Advice (Below Graph)
                 if API_KEY:
                     try:
@@ -190,6 +173,23 @@ with col2:
                     
                     except Exception as e:
                         st.warning(f"Gemini API Error: {e}")
+                
+                # Feature Importance Graph (Moved Above AI Health Advice)
+                st.subheader("🔍 Factors Affecting Your Risk")
+                if hasattr(model, "feature_importances_"):
+                    feature_importance_df = pd.DataFrame({
+                        'Feature': feature_order,
+                        'Importance': model.feature_importances_
+                    }).sort_values(by="Importance", ascending=False)
+
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.barh(feature_importance_df["Feature"], feature_importance_df["Importance"], color="skyblue")
+                    ax.set_xlabel("Importance Score")
+                    ax.set_title("Feature Importance")
+                    ax.invert_yaxis()
+                    st.pyplot(fig)
+                else:
+                    st.warning("Feature importance visualization unavailable.")
 
             except Exception as e:
                 st.error(f"Prediction Error: {e}")
